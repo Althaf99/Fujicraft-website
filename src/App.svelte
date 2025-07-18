@@ -1,138 +1,206 @@
 <script>
-import { routes } from './routes.js';
-import { onMount } from 'svelte';
-import { fade } from 'svelte/transition';
-let currentRoute = '/';
+  import { routes } from "./routes.js";
+  import { onMount } from "svelte";
+  let currentRoute = "/";
 
-function normalizeRoute(route) {
-  if (!route.startsWith('/')) return '/' + route;
-  return route;
-}
+  function normalizeRoute(route) {
+    if (!route.startsWith("/")) route = "/" + route;
+    return route.replace(/\/+$/, ""); // Remove trailing slashes
+  }
 
-function navigate(route) {
-  currentRoute = normalizeRoute(route);
-  window.history.pushState({}, '', currentRoute);
-}
+  function getRouteFromHash() {
+    // Extract only the part after #, ignoring any base path or search
+    const hash = window.location.hash.split("#")[1] || "/";
+    // Remove any query string
+    const route = hash.split("?")[0];
+    return normalizeRoute(route);
+  }
 
-onMount(() => {
-  window.onpopstate = () => {
-    currentRoute = normalizeRoute(window.location.pathname);
-  };
-  currentRoute = normalizeRoute(window.location.pathname || '/');
-});
+  function navigate(route) {
+    currentRoute = normalizeRoute(route);
+    window.location.hash = currentRoute;
+  }
+
+  onMount(() => {
+    function updateRouteFromHash() {
+      currentRoute = getRouteFromHash();
+    }
+    window.addEventListener("hashchange", updateRouteFromHash);
+    updateRouteFromHash();
+    return () => window.removeEventListener("hashchange", updateRouteFromHash);
+  });
 </script>
 
-<nav>
-  <div class="logo-container">
-    <img src="/src/assets/logo.png" alt="Fujicraft Electrical Accessories Logo" class="logo-img" />
-    <div class="logo-title">Fujicraft Electrical Accessories</div>
+<nav class="apple-nav">
+  <div class="apple-nav-logo">
+    <img src="/src/assets/logo.png" alt="Fujicraft Logo" class="apple-logo" />
   </div>
-  <ul>
-    <li><a href="/who-we-are" class:selected={currentRoute === '/who-we-are'} on:click|preventDefault={() => navigate('/who-we-are')}>WHO WE ARE</a></li>
-    <li><a href="/what-drives-us" class:selected={currentRoute === '/what-drives-us'} on:click|preventDefault={() => navigate('/what-drives-us')}>WHAT DRIVES US</a></li>
-    <li><a href="/what-we-do" class:selected={currentRoute === '/what-we-do'} on:click|preventDefault={() => navigate('/what-we-do')}>WHAT WE DO</a></li>
-    <li><a href="/contact" class:selected={currentRoute === '/contact'} on:click|preventDefault={() => navigate('/contact')}>CONTACT</a></li>
-   
+  <ul class="apple-nav-list">
+    <li>
+      <a
+        href="#/who-we-are"
+        class:selected={currentRoute === "/who-we-are"}
+        on:click|preventDefault={() => navigate("/who-we-are")}>Who We Are</a
+      >
+    </li>
+    <li>
+      <a
+        href="#/what-drives-us"
+        class:selected={currentRoute === "/what-drives-us"}
+        on:click|preventDefault={() => navigate("/what-drives-us")}
+        >What Drives Us</a
+      >
+    </li>
+    <li>
+      <a
+        href="#/what-we-do"
+        class:selected={currentRoute === "/what-we-do"}
+        on:click|preventDefault={() => navigate("/what-we-do")}>What We Do</a
+      >
+    </li>
+    <li>
+      <a
+        href="#/contact"
+        class:selected={currentRoute === "/contact"}
+        on:click|preventDefault={() => navigate("/contact")}>Contact</a
+      >
+    </li>
   </ul>
-  </nav>
+</nav>
 
 <main>
   {#if routes[currentRoute]}
-    <div transition:fade={{ duration: 350 }}>
+    <div>
       <svelte:component this={routes[currentRoute]} key={currentRoute} />
     </div>
   {:else}
-    <h2 transition:fade={{ duration: 350 }}>Page not found</h2>
+    <h2>Page not found</h2>
   {/if}
 </main>
 
 <style>
-.logo-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 0;
-  margin-top: 2rem;
-}
-.logo-title {
-  font-family: Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #d90429;
-  margin-top: 0.5rem;
-  text-align: center;
-}
-.logo-img {
-  max-width: 120px;
-  height: auto;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  background: #fff;
-  padding: 0.5rem;
-}
-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 220px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  background: transparent;
-  z-index: 1000;
-}
-nav::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 220px;
-  height: 100%;
-  background: #fff;
-  border-top-right-radius: 110px;
-  border-bottom-right-radius: 110px;
-  box-shadow: 2px 0 16px rgba(0,0,0,0.08);
-  z-index: -1;
-}
-nav ul {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  list-style: none;
-  padding: 0;
-  width: 100%;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-  margin-top: 6rem;
-}
-nav a {
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
-  padding: 0.5rem 1.5rem;
-  border-radius: 2rem;
-  position: relative;
-  transition: background 0.2s, color 0.2s, transform 0.2s;
-}
-nav a.selected {
-  color: #fff;
-  background: #d90429;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
+  .apple-nav {
+    width: 100vw;
+    height: 54px;
+    background: #181818;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    padding: 0 1.2rem;
+  }
+  .apple-nav-logo {
+    display: flex;
+    align-items: center;
+    margin-right: 2rem;
+  }
+  .apple-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .apple-nav-list {
+    display: flex;
+    gap: 1.2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+  }
+  .apple-nav-list li {
+    display: flex;
+    align-items: center;
+  }
+  .apple-nav-list a {
+    color: #f5f5f7;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.18rem 0.5rem;
+    border-radius: 0.5rem;
+    transition:
+      background 0.2s,
+      color 0.2s;
+    letter-spacing: 0.01em;
+  }
+  .apple-nav-list a.selected {
+    background: #333;
+    color: #fff;
+  }
+  .apple-nav-list a:hover {
+    background: #232323;
+    color: #fff;
+  }
+  main {
+    margin-top: 54px;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+  }
 
-main {
-  margin-left: 240px;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-}
+  @media (max-width: 430px) {
+    .apple-nav {
+      height: 50px;
+      padding: 0 0.5rem;
+    }
+    .apple-nav-logo {
+      margin-right: 1rem;
+    }
+    .apple-logo {
+      width: 24px;
+      height: 24px;
+    }
+    .apple-nav-list {
+      gap: 0.7rem;
+    }
+    .apple-nav-list a {
+      font-size: 0.95rem;
+      padding: 0.15rem 0.3rem;
+    }
+    main {
+      margin-top: 50px;
+      padding: 0 0.2rem;
+    }
+    .responsive-container {
+      padding: 1.2rem 0.5rem;
+      max-width: 100vw;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .apple-nav {
+      height: 48px;
+      padding: 0 0.2rem;
+    }
+    .apple-nav-logo {
+      margin-right: 0.5rem;
+    }
+    .apple-logo {
+      width: 20px;
+      height: 20px;
+    }
+    .apple-nav-list {
+      gap: 0.4rem;
+    }
+    .apple-nav-list a {
+      font-size: 0.9rem;
+      padding: 0.12rem 0.18rem;
+    }
+    main {
+      margin-top: 48px;
+      padding: 0 0.1rem;
+    }
+    .responsive-container {
+      padding: 0.7rem 0.1rem;
+      max-width: 100vw;
+    }
+  }
 </style>
